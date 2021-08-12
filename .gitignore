@@ -1,0 +1,13 @@
+CSVFiles
+usr
+bin
+lib
+__pycache__
+include
+.DS_Store
+pyvenv.cfg
+config.ini
+plots
+*/static/plots
+station_config.py
+cache
