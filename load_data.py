@@ -1,3 +1,4 @@
+import logging
 import numpy
 
 from obspy.clients.earthworm import Client as WClient
@@ -59,8 +60,9 @@ def load(network = None, station = None, location = None,
             raise AvailabilityError("No data for this timeframe")
 
         # TODO: flag limited data availability
-    except (IndexError, AvailabilityError):
+    except (IndexError, AvailabilityError) as e:
         # No availability for this station/timerange
+        logging.warning(f"No availability for {station}, {starttime} to {endtime}")
         return (None, None)
 
     args = {key: value for key, value in kwargs.items() if value is not None}
@@ -69,12 +71,16 @@ def load(network = None, station = None, location = None,
     if 'endtime' in args:
         args['endtime'] += PAD
 
+    if channel:
+        args['channel'] = channel[:-1] + '*'
+
     stream = wclient.get_waveforms(
         cleanup=True,
         **args
     )
 
     if stream.count() == 0:
+        logging.warning(f"No data returned for {station}, {starttime} to {endtime}")
         return (None, None)  # No data for this station, so just leave an empty plot
 
     # Merge any gaped traces
