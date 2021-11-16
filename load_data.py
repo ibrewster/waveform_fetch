@@ -48,8 +48,8 @@ def load(network = None, station = None, location = None,
 
     args = {key: value for key, value in
             kwargs.items()
-            if value is not None and
-            key not in ('starttime', 'endtime')}
+            if value is not None
+            and key not in ('starttime', 'endtime')}
 
     avail = wclient.get_availability(**args)
 
@@ -74,10 +74,19 @@ def load(network = None, station = None, location = None,
     if channel:
         args['channel'] = channel[:-1] + '*'
 
-    stream = wclient.get_waveforms(
-        cleanup=True,
-        **args
-    )
+    try:
+        stream = wclient.get_waveforms(
+            cleanup=True,
+            **args
+        )
+    except KeyError:
+        # Sometimes it doesn't like wildcards, whereupon we have to do this.
+        # Not sure why this is the case...
+        args['channel'] = channel
+        stream = wclient.get_waveforms(
+            cleanup=True,
+            **args
+        )
 
     if stream.count() == 0:
         logging.warning(f"No data returned for {station}, {starttime} to {endtime}")
