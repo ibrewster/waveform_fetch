@@ -104,13 +104,6 @@ def load(network = None, station = None, location = None,
         # Not enough data to work with
         return (None, None)
 
-    # What it says
-    stream.detrend()
-
-    # Apply a butterworth bandpass filter to get rid of some noise
-    stream.filter('bandpass', freqmin = low, freqmax = high,
-                  corners = order, zerophase = True)
-
     # And pad out any short traces
     stream.trim(starttime - PAD, endtime + PAD, pad = True, fill_value = numpy.nan)
 
@@ -121,10 +114,6 @@ def load(network = None, station = None, location = None,
     # Create an array of timestamps corresponding to the data points
     waveform_times = stream[0].times()
     waveform_times = ((waveform_times + DATA_START.timestamp) * 1000).astype('datetime64[ms]')
-    scale = stations[station]['SCALE']
 
-    for trace in stream:
-        trace.data /= scale
-        trace.data = trace.data - trace.data.mean()
 
     return (stream, waveform_times)
