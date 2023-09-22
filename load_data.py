@@ -1,5 +1,6 @@
 import logging
 import numpy
+import pandas
 
 from obspy.clients.earthworm import Client as WClient
 from obspy import UTCDateTime
@@ -112,8 +113,9 @@ def load(network = None, station = None, location = None,
     DATA_START = UTCDateTime(stream[0].stats['starttime'])
 
     # Create an array of timestamps corresponding to the data points
-    waveform_times = stream[0].times()
-    waveform_times = ((waveform_times + DATA_START.timestamp) * 1000).astype('datetime64[ms]')
+    waveform_times = pandas.to_datetime(stream[0].times('timestamp'), unit ='s').to_series()
+    # waveform_times = stream[0].times()
+    # waveform_times = ((waveform_times + DATA_START.timestamp) * 1000).astype('datetime64[ms]')
 
 
     return (stream, waveform_times)
