@@ -96,7 +96,7 @@ def load(network = None, station = None, location = None,
     # Merge any gaped traces
     # Everything needs to be the same dtype
     for tr in stream:
-        tr.data = tr.data.astype(int)
+        tr.data = tr.data.astype(float)
 
     stream = stream.merge(method = 1, fill_value = 'latest',
                           interpolation_samples = -1)
@@ -111,6 +111,10 @@ def load(network = None, station = None, location = None,
     # Get the actual start time from the data, in case it's
     # slightly different from what we requested.
     DATA_START = UTCDateTime(stream[0].stats['starttime'])
+    
+    # Convert everything to int for consistancy
+    for tr in stream:
+        tr.data = tr.data.astype(int)    
 
     # Create an array of timestamps corresponding to the data points
     waveform_times = pandas.to_datetime(stream[0].times('timestamp'), unit ='s').to_series()
