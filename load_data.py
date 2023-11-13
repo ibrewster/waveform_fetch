@@ -5,11 +5,11 @@ import pandas
 from obspy.clients.earthworm import Client as WClient
 from obspy import UTCDateTime
 
-from . import config as CONFIG, AvailabilityError, stations
+from . import config as CONFIG, AvailabilityError
 
 
 def load(network = None, station = None, location = None,
-         channel = None, starttime = None, endtime = None):
+         channel = None, starttime = None, endtime = None, availability=None):
     """
     Load and clean waveform data from a winston server.
     Takes a number of optional filtering parameters and returns
@@ -47,16 +47,11 @@ def load(network = None, station = None, location = None,
 
     wclient = WClient(winston_url, winston_port)
 
-    args = {key: value for key, value in
-            kwargs.items()
-            if value is not None
-            and key not in ('starttime', 'endtime')}
-
-    avail = wclient.get_availability(**args)
+    avail = availability.get((station, channel), ())
 
     try:
-        avail_from = avail[0][4]
-        avail_to = avail[0][5]
+        avail_from = avail[4]
+        avail_to = avail[5]
         if avail_to < starttime or avail_from > endtime:
             raise AvailabilityError("No data for this timeframe")
 
@@ -66,7 +61,7 @@ def load(network = None, station = None, location = None,
         logging.warning(f"No availability for {station}, {starttime} to {endtime}")
         return (None, None)
 
-    args = {key: value for key, value in kwargs.items() if value is not None}
+    args = {key: value for key, value in kwargs.items() if value is not None and key != 'availability'}
     if 'starttime' in args:
         args['starttime'] -= PAD
     if 'endtime' in args:
@@ -113,8 +108,8 @@ def load(network = None, station = None, location = None,
     DATA_START = UTCDateTime(stream[0].stats['starttime'])
     
     # Convert everything to int for consistancy
-    for tr in stream:
-        tr.data = tr.data.astype(int)    
+        # for tr in stream:
+            # tr.data = tr.data.astype(int)    
 
     # Create an array of timestamps corresponding to the data points
     waveform_times = pandas.to_datetime(stream[0].times('timestamp'), unit ='s').to_series()

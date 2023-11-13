@@ -11,7 +11,7 @@ def _init():
 
 
 _init()
-
+import config as CFG_FILE
 from config import config, stations
 
 from .load_data import load
